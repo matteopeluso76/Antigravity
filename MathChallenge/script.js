@@ -86,8 +86,18 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- AUDIO CONTEXT ---
+    // --- AUDIO CONTEXT ---
     const AudioContext = window.AudioContext || window.webkitAudioContext;
-    let audioCtx = new AudioContext();
+    let audioCtx = null;
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new AudioContext();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
 
     // --- SCREEN ELEMENTS ---
     const screens = {
@@ -162,17 +172,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Setup
         els.btnSetupBack.addEventListener('click', () => showScreen('menu'));
-        els.toggleBtns.forEach(btn => btn.addEventListener('click', (e) => {
+        els.toggleBtns.forEach(btn => btn.addEventListener('click', () => {
             els.toggleBtns.forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-            STATE.totalQuestions = parseInt(e.target.dataset.count);
+            btn.classList.add('active');
+            STATE.totalQuestions = parseInt(btn.dataset.count);
         }));
-        els.diffBtns.forEach(btn => btn.addEventListener('click', (e) => {
-            STATE.difficulty = parseInt(e.target.dataset.level);
-            if (STATE.mode === 'challenge') {
-                startChallenge();
-            } else {
-                startFreeRunGame();
+        els.diffBtns.forEach(btn => btn.addEventListener('click', () => {
+            try {
+                const level = parseInt(btn.dataset.level);
+                if (isNaN(level)) {
+                    console.error('Invalid difficulty level');
+                    return;
+                }
+                STATE.difficulty = level;
+
+                // Ensure AudioContext is ready (user gesture)
+                // Wrap in try-catch to prevent audio issues from blocking game
+                try {
+                    initAudio();
+                } catch (audioErr) {
+                    console.warn('Audio init failed:', audioErr);
+                }
+
+                if (STATE.mode === 'challenge') {
+                    startChallenge();
+                } else {
+                    startFreeRunGame();
+                }
+            } catch (err) {
+                console.error('Error starting game:', err);
+                alert('Error: ' + err.message);
             }
         }));
 
@@ -202,27 +231,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function startFreeRunSetup() {
         STATE.mode = 'free';
-        // Reuse setup screen logic or jump straight to difficulty?
-        // Let's use the buttons on menu screen for free run difficulty if needed,
-        // but current implementation has difficulty on Setup.
-        // To simplify: Free run re-uses the difficulty buttons on Menu if we had them,
-        // but since we moved them to Setup, let's just go to Setup but hide the details?
-        // OR: User click "Free Run" -> goes to a mode where we just pick difficulty.
-        // Let's repurpose logic: 
-        // 1. Hide difficulty buttons on Menu (we did that).
-        // 2. Click "Free Run" -> Show Setup screen but HIDE "Questions count" and "Name".
-
         showScreen('setup');
-        screens.setup.querySelector('.setup-group:nth-child(2)').classList.add('hidden'); // Hide Name
-        screens.setup.querySelector('.setup-group:nth-child(3)').classList.add('hidden'); // Hide Count
+
+        // Hide Name and Question Count for Free Run
+        const groups = screens.setup.querySelectorAll('.setup-group');
+        groups.forEach(g => g.classList.add('hidden'));
     }
 
     // Fix: restore the "Show setup for challenge"
     els.btnChallenge.addEventListener('click', () => {
         STATE.mode = 'challenge';
         showScreen('setup');
-        screens.setup.querySelector('.setup-group:nth-child(2)').classList.remove('hidden');
-        screens.setup.querySelector('.setup-group:nth-child(3)').classList.remove('hidden');
+
+        // Show Name and Question Count for Challenge
+        const groups = screens.setup.querySelectorAll('.setup-group');
+        groups.forEach(g => g.classList.remove('hidden'));
+
         STATE.playerName = els.inputName.value || 'Player';
     });
 
@@ -511,14 +535,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- AUDIO ---
     function playSound(type) {
+        initAudio();
+        if (!audioCtx) return;
+
         if (audioCtx.state === 'suspended') audioCtx.resume();
+        const now = audioCtx.currentTime;
 
         const osc = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
         osc.connect(gainNode);
         gainNode.connect(audioCtx.destination);
-
-        const now = audioCtx.currentTime;
 
         if (type === 'win') {
             osc.type = 'sine';
