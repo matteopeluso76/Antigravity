@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- STATE ---
     const STATE = {
         mode: 'free', // 'free' | 'challenge'
-        lang: 'en',
+        lang: 'it',
         currentScore: 0, // In free run: stars. In challenge: calculated score.
         currentQuestion: 0,
         totalQuestions: 10,
@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- INITIALIZATION ---
     attachEvents();
-    updateLanguage('en');
+    updateLanguage('it');
 
     // --- EVENT LISTENERS ---
     function attachEvents() {
