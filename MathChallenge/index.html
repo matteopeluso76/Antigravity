@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Math Fun for Kids!</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+
+<body>
+    <div class="game-container">
+        <!-- Menu Screen -->
+        <div id="menu-screen">
+            <div class="lang-selector">
+                <button class="lang-btn active" data-lang="en">🇬🇧 EN</button>
+                <button class="lang-btn" data-lang="it">🇮🇹 IT</button>
+            </div>
+
+            <h1 data-i18n="title">Math Fun!</h1>
+
+            <div class="main-menu-actions">
+                <div class="mode-selection">
+                    <p data-i18n="selectMode">Select Mode:</p>
+                    <button class="menu-btn mode-btn" id="btn-free-run" data-i18n="modeFree">Free Run 🏃</button>
+                    <button class="menu-btn mode-btn" id="btn-challenge" data-i18n="modeChallenge">Challenge 🏆</button>
+                </div>
+
+                <button class="menu-btn small-btn" id="btn-show-leaderboard" data-i18n="viewLeaderboard">View
+                    Leaderboard 🏅</button>
+            </div>
+        </div>
+
+        <!-- Setup Screen -->
+        <div id="setup-screen" class="hidden">
+            <button class="icon-btn back-btn" id="btn-setup-back">⬅️</button>
+            <h2 data-i18n="setupTitle">Challenge Setup</h2>
+
+            <div class="setup-group">
+                <label data-i18n="enterName">Your Name:</label>
+                <input type="text" id="player-name" maxlength="10" placeholder="Player">
+            </div>
+
+            <div class="setup-group">
+                <label data-i18n="selectQuestions">Questions:</label>
+                <div class="toggle-group">
+                    <button class="toggle-btn active" data-count="10">10</button>
+                    <button class="toggle-btn" data-count="20">20</button>
+                </div>
+            </div>
+
+            <p data-i18n="selectDifficulty">Select Difficulty:</p>
+            <div class="difficulty-buttons">
+                <button class="menu-btn diff-btn" data-level="20" data-i18n="diffEasy">Easy (20)</button>
+                <button class="menu-btn diff-btn" data-level="50" data-i18n="diffMedium">Medium (50)</button>
+                <button class="menu-btn diff-btn" data-level="100" data-i18n="diffHard">Hard (100)</button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="hidden">
+            <header>
+                <button id="btn-back" class="icon-btn">⬅️</button>
+                <div class="header-center">
+                    <div class="score-board">
+                        <span id="score-label" data-i18n="stars">Stars:</span> <span id="score">0</span> <span
+                            id="score-icon">⭐</span>
+                    </div>
+                    <div id="timer-display" class="hidden"><span data-i18n="time">Time:</span> <span
+                            id="time-val">0.0</span>s</div>
+                    <div id="progress-display" class="hidden"><span id="progress-val">1/10</span></div>
+                </div>
+            </header>
+
+            <main id="game-area">
+                <div class="question-box">
+                    <span id="num1">?</span>
+                    <span id="operator">+</span>
+                    <span id="num2">?</span>
+                    <span>=</span>
+                    <span id="answer-placeholder">?</span>
+                </div>
+
+                <div class="input-area">
+                    <div class="numpad">
+                        <button class="num-btn" data-value="1">1</button>
+                        <button class="num-btn" data-value="2">2</button>
+                        <button class="num-btn" data-value="3">3</button>
+                        <button class="num-btn" data-value="4">4</button>
+                        <button class="num-btn" data-value="5">5</button>
+                        <button class="num-btn" data-value="6">6</button>
+                        <button class="num-btn" data-value="7">7</button>
+                        <button class="num-btn" data-value="8">8</button>
+                        <button class="num-btn" data-value="9">9</button>
+                        <button class="num-btn action-btn clean-btn" id="btn-clear">❌</button>
+                        <button class="num-btn" data-value="0">0</button>
+                        <button class="num-btn action-btn check-btn" id="btn-check">✅</button>
+                    </div>
+                </div>
+
+                <div id="feedback" class="feedback-message hidden">
+                    <span id="feedback-text">Awesome!</span>
+                </div>
+            </main>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="hidden">
+            <h2 data-i18n="resultsTitle">Challenge Complete!</h2>
+
+            <div class="results-card">
+                <div class="result-row">
+                    <span data-i18n="correctAnswers">Correct:</span>
+                    <span id="res-correct">10/10</span>
+                </div>
+                <div class="result-row">
+                    <span data-i18n="totalTime">Time:</span>
+                    <span id="res-time">30s</span>
+                </div>
+                <div class="result-row big-score">
+                    <span data-i18n="score">Score:</span>
+                    <span id="res-score">950</span>
+                </div>
+            </div>
+
+            <div id="high-score-msg" class="hidden">
+                <span class="trophy">🏆</span>
+                <span data-i18n="newHighScore">NEW HIGH SCORE!</span>
+                <span class="trophy">🏆</span>
+            </div>
+
+            <div class="action-buttons">
+                <button class="menu-btn" id="btn-results-menu" data-i18n="backToMenu">Menu</button>
+                <button class="menu-btn" id="btn-results-leaderboard" data-i18n="viewLeaderboard">Leaderboard</button>
+            </div>
+        </div>
+
+        <!-- Leaderboard Screen -->
+        <div id="leaderboard-screen" class="hidden">
+            <button class="icon-btn back-btn" id="btn-leaderboard-back">⬅️</button>
+            <h2 data-i18n="leaderboardTitle">Top 10</h2>
+
+            <div class="leaderboard-container">
+                <table id="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th data-i18n="colName">Name</th>
+                            <th data-i18n="colScore">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Rows injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="leaderboard-empty" class="hidden" data-i18n="noScores">No scores yet!</div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
