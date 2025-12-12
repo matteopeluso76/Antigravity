@@ -40,12 +40,12 @@
             <button class="icon-btn back-btn" id="btn-setup-back">⬅️</button>
             <h2 data-i18n="setupTitle">Challenge Setup</h2>
 
-            <div class="setup-group">
+            <div class="setup-group" id="group-name">
                 <label data-i18n="enterName">Your Name:</label>
                 <input type="text" id="player-name" maxlength="10" placeholder="Player">
             </div>
 
-            <div class="setup-group">
+            <div class="setup-group" id="group-count">
                 <label data-i18n="selectQuestions">Questions:</label>
                 <div class="toggle-group">
                     <button class="toggle-btn active" data-count="10">10</button>
@@ -53,7 +53,7 @@
                 </div>
             </div>
 
-            <div class="setup-group">
+            <div class="setup-group" id="group-timer">
                 <label data-i18n="enableTimer">Enable Timer ⏱️</label>
                 <label class="switch">
                     <input type="checkbox" id="timer-toggle">

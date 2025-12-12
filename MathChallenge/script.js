@@ -121,6 +121,11 @@ document.addEventListener('DOMContentLoaded', () => {
         diffBtns: document.querySelectorAll('.diff-btn'),
         btnSetupBack: document.getElementById('btn-setup-back'),
 
+        // Setup Groups
+        groupName: document.getElementById('group-name'),
+        groupCount: document.getElementById('group-count'),
+        groupTimer: document.getElementById('group-timer'),
+
         // Game
         scoreLabel: document.getElementById('score-label'),
         scoreVal: document.getElementById('score'),
@@ -233,9 +238,10 @@ document.addEventListener('DOMContentLoaded', () => {
         STATE.mode = 'free';
         showScreen('setup');
 
-        // Hide Name and Question Count for Free Run
-        const groups = screens.setup.querySelectorAll('.setup-group');
-        groups.forEach(g => g.classList.add('hidden'));
+        // Hide specific challenge fields, but keep Timer Toggle
+        els.groupName.classList.add('hidden');
+        els.groupCount.classList.add('hidden');
+        els.groupTimer.classList.remove('hidden');
     }
 
     // Fix: restore the "Show setup for challenge"
@@ -243,9 +249,10 @@ document.addEventListener('DOMContentLoaded', () => {
         STATE.mode = 'challenge';
         showScreen('setup');
 
-        // Show Name and Question Count for Challenge
-        const groups = screens.setup.querySelectorAll('.setup-group');
-        groups.forEach(g => g.classList.remove('hidden'));
+        // Show all fields for Challenge
+        els.groupName.classList.remove('hidden');
+        els.groupCount.classList.remove('hidden');
+        els.groupTimer.classList.remove('hidden');
 
         STATE.playerName = els.inputName.value || 'Player';
     });
@@ -261,8 +268,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Check toggle for timer
         if (els.timerToggle.checked) {
             els.timerDisplay.classList.remove('hidden');
+            startTimer(); // Ensure timer starts in Free Run if checked
         } else {
             els.timerDisplay.classList.add('hidden');
+            stopTimer();
         }
 
         showScreen('game');
@@ -283,11 +292,20 @@ document.addEventListener('DOMContentLoaded', () => {
         els.scoreVal.textContent = ''; // Hide score during challenge (or show 0/10)
 
         els.progressDisplay.classList.remove('hidden');
-        els.timerDisplay.classList.remove('hidden'); // Always show timer in challenge
+
+        // Timer Logic for Challenge
+        if (els.timerToggle.checked) {
+            els.timerDisplay.classList.remove('hidden');
+            startTimer();
+        } else {
+            els.timerDisplay.classList.add('hidden');
+            stopTimer(); // Ensure previous interval is cleared
+            // Note: End game calculation will still use (Date.now() - startTime)
+            // This is effectively "Hidden Timer" which is valid for scoring
+        }
 
         showScreen('game');
         nextChallengeQuestion();
-        startTimer();
     }
 
     // --- GAME LOGIC ---
