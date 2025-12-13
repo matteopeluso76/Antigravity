@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- STATE ---
     const STATE = {
         mode: 'free', // 'free' | 'challenge'
+        gameplayMode: 'classic', // 'classic' | 'nines' | 'triplets' | 'missing'
         lang: 'it',
         currentScore: 0, // In free run: stars. In challenge: calculated score.
         currentQuestion: 0,
@@ -18,8 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Question Data
         num1: 0,
         num2: 0,
+        num3: 0, // for triplets
         answer: 0,
         operator: '+',
+        operator2: '', // for triplets
+        missingIdx: -1, // for missing number mode (0=num1, 1=num2, 2=result)
         inputBuffer: ''
     };
 
@@ -52,7 +56,12 @@ document.addEventListener('DOMContentLoaded', () => {
             colScore: "Score",
             noScores: "No scores yet!",
             feedbackCorrect: ["Awesome!", "Great Job!", "Correct!", "Super!", "Math Wizard!"],
-            feedbackWrong: "Oops, try again!"
+            feedbackWrong: "Oops, try again!",
+            selectGameplay: "Gameplay:",
+            modeClassic: "Classic (a+b)",
+            modeNines: "Nines (9+...)",
+            modeTriplets: "Three Numbers",
+            modeMissing: "Missing Number"
         },
         it: {
             title: "Matematica!",
@@ -81,7 +90,12 @@ document.addEventListener('DOMContentLoaded', () => {
             colScore: "Punti",
             noScores: "Nessun record!",
             feedbackCorrect: ["Fantastico!", "Bravissimo!", "Corretto!", "Super!", "Mago della Matematica!"],
-            feedbackWrong: "Ops, riprova!"
+            feedbackWrong: "Ops, riprova!",
+            selectGameplay: "Modalità di Gioco:",
+            modeClassic: "Classica (a+b)",
+            modeNines: "Del Nove (9+...)",
+            modeTriplets: "Tre Numeri",
+            modeMissing: "Numero Mancante"
         }
     };
 
@@ -137,15 +151,16 @@ document.addEventListener('DOMContentLoaded', () => {
         btnBack: document.getElementById('btn-back'),
         timerToggle: document.getElementById('timer-toggle'),
 
+        // Gameplay
+        gameplayBtns: document.querySelectorAll('.gameplay-btn'),
+
         // Question
-        num1: document.getElementById('num1'),
-        num2: document.getElementById('num2'),
-        operator: document.getElementById('operator'),
-        answerPlaceholder: document.getElementById('answer-placeholder'),
+        // num1, num2 removed from static cache as they are dynamic now
+        // answerPlaceholder removed from static cache
+        gameArea: document.querySelector('.question-box'),
         feedback: document.getElementById('feedback'),
         feedbackText: document.getElementById('feedback-text'),
         numpad: document.querySelectorAll('.num-btn'),
-        gameArea: document.querySelector('.question-box'),
 
         // Results
         resCorrect: document.getElementById('res-correct'),
@@ -208,6 +223,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Error starting game:', err);
                 alert('Error: ' + err.message);
             }
+        }));
+
+        // Gameplay Selection
+        els.gameplayBtns.forEach(btn => btn.addEventListener('click', () => {
+            els.gameplayBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            STATE.gameplayMode = btn.dataset.mode;
         }));
 
         // Game
@@ -310,25 +332,146 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- GAME LOGIC ---
     function generateQuestion() {
-        // Randomly choose addition or subtraction
-        const isAddition = Math.random() > 0.5;
-        STATE.operator = isAddition ? '+' : '-';
-        els.operator.textContent = STATE.operator;
-        let max = STATE.difficulty;
+        // Reset buffers
+        STATE.inputBuffer = '';
+        const max = STATE.difficulty;
 
-        if (isAddition) {
-            STATE.num1 = Math.floor(Math.random() * (max + 1));
-            STATE.num2 = Math.floor(Math.random() * (max - STATE.num1 + 1));
-            STATE.answer = STATE.num1 + STATE.num2;
+        let questionHTML = '';
+        STATE.answer = 0; // The value user needs to type
+
+        // --- Logic per Mode ---
+        if (STATE.gameplayMode === 'triplets') {
+            // Three numbers: a op1 b op2 c
+            // Avoid negatives at any step for simplicity? Or just final result.
+            // Let's ensure final result >= 0.
+            let valid = false;
+            while (!valid) {
+                const n1 = Math.floor(Math.random() * (max / 2)) + 1; // scale down slightly
+                const n2 = Math.floor(Math.random() * (max / 2)) + 1;
+                const n3 = Math.floor(Math.random() * (max / 2)) + 1;
+                const op1 = Math.random() > 0.5 ? '+' : '-';
+                const op2 = Math.random() > 0.5 ? '+' : '-';
+
+                let res = n1;
+                if (op1 === '+') res += n2; else res -= n2;
+                if (op2 === '+') res += n3; else res -= n3;
+
+                if (res >= 0 && res <= max + 10) { // Keep result reasonable
+                    STATE.num1 = n1;
+                    STATE.num2 = n2;
+                    STATE.num3 = n3;
+                    STATE.operator = op1;
+                    STATE.operator2 = op2;
+                    STATE.answer = res;
+                    valid = true;
+                }
+            }
+
+            questionHTML = `
+                <span>${STATE.num1}</span>
+                <span>${STATE.operator}</span>
+                <span>${STATE.num2}</span>
+                <span>${STATE.operator2}</span>
+                <span>${STATE.num3}</span>
+                <span>=</span>
+                <span id="answer-placeholder">?</span>
+            `;
+
+        } else if (STATE.gameplayMode === 'nines') {
+            // One operand is 9
+            const isAddition = Math.random() > 0.5;
+            STATE.operator = isAddition ? '+' : '-';
+
+            if (isAddition) {
+                // 9 + x or x + 9
+                const other = Math.floor(Math.random() * (max - 9 + 1));
+                if (Math.random() > 0.5) {
+                    STATE.num1 = 9; STATE.num2 = other;
+                } else {
+                    STATE.num1 = other; STATE.num2 = 9;
+                }
+                STATE.answer = STATE.num1 + STATE.num2;
+            } else {
+                // x - 9 (must be x >= 9) or 19 - 9 etc
+                // If we want "sums and diffs OF 9", typically -9 is the key.
+                // 15 - 9
+                const min = 9;
+                STATE.num1 = Math.floor(Math.random() * (max - min + 1)) + min;
+                STATE.num2 = 9;
+                STATE.answer = STATE.num1 - STATE.num2;
+            }
+
+            questionHTML = `
+                <span>${STATE.num1}</span>
+                <span>${STATE.operator}</span>
+                <span>${STATE.num2}</span>
+                <span>=</span>
+                <span id="answer-placeholder">?</span>
+            `;
+
+        } else if (STATE.gameplayMode === 'missing') {
+            // a + ? = c
+            const isAddition = Math.random() > 0.5;
+            STATE.operator = isAddition ? '+' : '-';
+
+            let realRes;
+            if (isAddition) {
+                STATE.num1 = Math.floor(Math.random() * (max + 1));
+                STATE.num2 = Math.floor(Math.random() * (max - STATE.num1 + 1));
+                realRes = STATE.num1 + STATE.num2;
+            } else {
+                STATE.num1 = Math.floor(Math.random() * (max + 1));
+                STATE.num2 = Math.floor(Math.random() * (STATE.num1 + 1));
+                realRes = STATE.num1 - STATE.num2;
+            }
+
+            // Decide which to hide (num1 or num2)
+            // If we hide num1: ? + 5 = 10. Answer is num1.
+            // If we hide num2: 5 + ? = 10. Answer is num2.
+            const hideFirst = Math.random() > 0.5;
+            const valToShow1 = hideFirst ? '?' : STATE.num1;
+            const valToShow2 = hideFirst ? STATE.num2 : '?';
+
+            STATE.answer = hideFirst ? STATE.num1 : STATE.num2;
+            // Special case: if hiding first in subtraction: ? - 5 = 2 => 7. Correct.
+            // Special case: if hiding second in subtraction: 7 - ? = 2 => 5. Correct.
+
+            questionHTML = `
+                <span ${hideFirst ? 'id="answer-placeholder"' : ''}>${valToShow1}</span>
+                <span>${STATE.operator}</span>
+                <span ${!hideFirst ? 'id="answer-placeholder"' : ''}>${valToShow2}</span>
+                <span>=</span>
+                <span>${realRes}</span>
+            `;
+
         } else {
-            STATE.num1 = Math.floor(Math.random() * (max + 1));
-            STATE.num2 = Math.floor(Math.random() * (STATE.num1 + 1));
-            STATE.answer = STATE.num1 - STATE.num2;
+            // Classic
+            const isAddition = Math.random() > 0.5;
+            STATE.operator = isAddition ? '+' : '-';
+
+            if (isAddition) {
+                STATE.num1 = Math.floor(Math.random() * (max + 1));
+                STATE.num2 = Math.floor(Math.random() * (max - STATE.num1 + 1));
+                STATE.answer = STATE.num1 + STATE.num2;
+            } else {
+                STATE.num1 = Math.floor(Math.random() * (max + 1));
+                STATE.num2 = Math.floor(Math.random() * (STATE.num1 + 1));
+                STATE.answer = STATE.num1 - STATE.num2;
+            }
+
+            questionHTML = `
+                <span>${STATE.num1}</span>
+                <span>${STATE.operator}</span>
+                <span>${STATE.num2}</span>
+                <span>=</span>
+                <span id="answer-placeholder">?</span>
+            `;
         }
 
-        els.num1.textContent = STATE.num1;
-        els.num2.textContent = STATE.num2;
-        STATE.inputBuffer = '';
+        els.gameArea.innerHTML = questionHTML;
+        // Re-bind dynamic elements
+        els.answerPlaceholder = document.getElementById('answer-placeholder');
+
         updateInputDisplay();
     }
 
@@ -359,6 +502,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateInputDisplay() {
+        if (!els.answerPlaceholder) return;
+
         els.answerPlaceholder.textContent = STATE.inputBuffer === '' ? '?' : STATE.inputBuffer;
         if (STATE.inputBuffer !== '') {
             els.answerPlaceholder.style.color = '#2C3E50';
