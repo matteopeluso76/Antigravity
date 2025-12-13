@@ -1,13 +1,49 @@
 :root {
+    /* Default Theme */
     --primary-color: #FF6B6B;
     --secondary-color: #4ECDC4;
     --accent-color: #FFE66D;
     --text-color: #2C3E50;
     --bg-color: #F7F9FC;
+    --bg-pattern: radial-gradient(#4ECDC4 2px, transparent 2px);
     --btn-bg: #FFFFFF;
     --btn-shadow: #E0E0E0;
     --success-color: #6BCB77;
     --error-color: #FF6B6B;
+    --font-family: 'Fredoka', sans-serif;
+    --border-radius: 25px;
+}
+
+/* Fairy Theme */
+body.theme-fairy {
+    --primary-color: #FF9AA2;
+    --secondary-color: #FFB7B2;
+    --accent-color: #FFDAC1;
+    --text-color: #6B4C5E;
+    --bg-color: #FFF0F5;
+    --bg-pattern: radial-gradient(#FFB7B2 3px, transparent 3px), radial-gradient(#FF9AA2 2px, transparent 2px);
+    --btn-bg: #FFF5F7;
+    --btn-shadow: #FFD1DC;
+    --success-color: #98DDCA;
+    --error-color: #FF9AA2;
+    --font-family: 'Fredoka', cursive;
+    /* Could use a specialized cursive font if available */
+}
+
+/* Space Theme */
+body.theme-space {
+    --primary-color: #FF0055;
+    --secondary-color: #00D4FF;
+    --accent-color: #F8F7FF;
+    --text-color: #E0E1DD;
+    --bg-color: #0B0C10;
+    --bg-pattern: radial-gradient(white 1px, transparent 1px), radial-gradient(rgba(255, 255, 255, 0.5) 2px, transparent 2px);
+    /* Stars */
+    --btn-bg: #1F2833;
+    --btn-shadow: #000000;
+    --success-color: #00FF9D;
+    --error-color: #FF3860;
+    --font-family: 'Fredoka', monospace;
 }
 
 * {
@@ -19,10 +55,12 @@
 }
 
 body {
-    font-family: 'Fredoka', sans-serif;
+    font-family: var(--font-family);
     background-color: var(--bg-color);
-    background-image: radial-gradient(var(--secondary-color) 2px, transparent 2px);
+    background-image: var(--bg-pattern);
     background-size: 40px 40px;
+    background-position: 0 0, 20px 20px;
+    /* Shift for second layer in themes */
     color: var(--text-color);
     height: 100vh;
     display: flex;
@@ -158,7 +196,28 @@ main {
 
 .feedback-message.visible {
     opacity: 1;
-    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes bounceIn {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    60% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+
+    80% {
+        transform: scale(0.95);
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 @keyframes popIn {
@@ -236,6 +295,49 @@ main {
     color: var(--secondary-color);
     transform: scale(1.1);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Theme Selector */
+.theme-selector {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.theme-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 3px solid white;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.theme-btn.active {
+    transform: scale(1.2);
+    border-color: var(--text-color);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.theme-default {
+    background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+}
+
+.theme-fairy {
+    background: linear-gradient(135deg, #FF9AA2, #FFB7B2);
+}
+
+.theme-space {
+    background: linear-gradient(135deg, #0B0C10, #1F2833);
+    color: white;
 }
 
 /* Menu Screen */

@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const STATE = {
         mode: 'free', // 'free' | 'challenge'
         gameplayMode: 'classic', // 'classic' | 'nines' | 'triplets' | 'missing'
+        theme: 'default', // 'default' | 'fairy' | 'space'
         lang: 'it',
         currentScore: 0, // In free run: stars. In challenge: calculated score.
         currentQuestion: 0,
@@ -154,6 +155,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Gameplay
         gameplayBtns: document.querySelectorAll('.gameplay-btn'),
 
+        // Theme
+        themeBtns: document.querySelectorAll('.theme-btn'),
+
         // Question
         // num1, num2 removed from static cache as they are dynamic now
         // answerPlaceholder removed from static cache
@@ -178,6 +182,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- INITIALIZATION ---
     attachEvents();
+    // Load theme from storage
+    const savedTheme = localStorage.getItem('mathGame_theme') || 'default';
+    updateTheme(savedTheme);
     updateLanguage('it');
 
     // --- EVENT LISTENERS ---
@@ -230,6 +237,11 @@ document.addEventListener('DOMContentLoaded', () => {
             els.gameplayBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             STATE.gameplayMode = btn.dataset.mode;
+        }));
+
+        // Theme Selection
+        els.themeBtns.forEach(btn => btn.addEventListener('click', () => {
+            updateTheme(btn.dataset.theme);
         }));
 
         // Game
@@ -536,7 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         showFeedback(true);
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        triggerConfetti();
 
         setTimeout(() => {
             hideFeedback();
@@ -663,6 +675,50 @@ document.addEventListener('DOMContentLoaded', () => {
         // HACK: Restore content for specific complex elements
         if (TRANSLATIONS[lang].stars) els.scoreLabel.textContent = TRANSLATIONS[lang].stars;
         if (TRANSLATIONS[lang].time) els.timerDisplay.firstChild.textContent = TRANSLATIONS[lang].time;
+    }
+
+    function updateTheme(theme) {
+        STATE.theme = theme;
+        document.body.className = `theme-${theme}`;
+        els.themeBtns.forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
+        localStorage.setItem('mathGame_theme', theme);
+
+        // Optional: Update specific icons or text if needed
+    }
+
+    function triggerConfetti() {
+        const theme = STATE.theme;
+        let opts = { origin: { y: 0.7 } };
+
+        if (theme === 'fairy') {
+            // Pink/Gold sparkles
+            confetti({
+                ...opts,
+                particleCount: 150,
+                spread: 100,
+                colors: ['#FF9AA2', '#FFB7B2', '#FFDAC1', '#FFD700', '#FFFFFF'],
+                shapes: ['circle', 'star'], // Use stars if supported, or default
+                scalar: 1.2
+            });
+        } else if (theme === 'space') {
+            // Neon colors, star shapes
+            confetti({
+                ...opts,
+                particleCount: 150,
+                spread: 120,
+                colors: ['#00FF9D', '#FF0055', '#E0E1DD', '#00D4FF'],
+                shapes: ['square', 'circle'],
+                scalar: 0.8,
+                drift: 0.5
+            });
+        } else {
+            // Default colorful
+            confetti({
+                ...opts,
+                particleCount: 100,
+                spread: 70
+            });
+        }
     }
 
     function showFeedback(isCorrect) {
