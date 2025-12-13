@@ -31,6 +31,13 @@
 
             <h1 data-i18n="title">Math Fun!</h1>
 
+
+
+            <div class="setup-group" id="group-name">
+                <label data-i18n="enterName">Your Name:</label>
+                <input type="text" id="player-name" maxlength="10" placeholder="Player">
+            </div>
+
             <div class="main-menu-actions">
                 <div class="mode-selection">
                     <p data-i18n="selectMode">Select Mode:</p>
@@ -48,10 +55,7 @@
             <button class="icon-btn back-btn" id="btn-setup-back">⬅️</button>
             <h2 data-i18n="setupTitle">Challenge Setup</h2>
 
-            <div class="setup-group" id="group-name">
-                <label data-i18n="enterName">Your Name:</label>
-                <input type="text" id="player-name" maxlength="10" placeholder="Player">
-            </div>
+            <!-- Name Input Removed from Here -->
 
             <div class="setup-group" id="group-count">
                 <label data-i18n="selectQuestions">Questions:</label>
@@ -80,7 +84,13 @@
                     (a+?=c)</button>
             </div>
 
-            <p data-i18n="selectDifficulty">Select Difficulty:</p>
+            <button class="menu-btn small-btn" id="btn-setup-next" data-i18n="next">Next ➡️</button>
+        </div>
+
+        <!-- Difficulty Screen -->
+        <div id="difficulty-screen" class="hidden">
+            <button class="icon-btn back-btn" id="btn-difficulty-back">⬅️</button>
+            <h2 data-i18n="selectDifficulty">Select Difficulty:</h2>
             <div class="difficulty-buttons">
                 <button class="menu-btn diff-btn" data-level="20" data-i18n="diffEasy">Easy (20)</button>
                 <button class="menu-btn diff-btn" data-level="50" data-i18n="diffMedium">Medium (50)</button>

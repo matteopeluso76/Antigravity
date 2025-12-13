@@ -505,6 +505,7 @@ input:checked+.slider:before {
 
 /* Setup Screen */
 #setup-screen,
+#difficulty-screen,
 #results-screen,
 #leaderboard-screen {
     width: 100%;

@@ -62,7 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
             modeClassic: "Classic (a+b)",
             modeNines: "Nines (9+...)",
             modeTriplets: "Three Numbers",
-            modeMissing: "Missing Number"
+            feedbackWrong: "Oops, try again!",
+            selectGameplay: "Gameplay:",
+            modeClassic: "Classic (a+b)",
+            modeNines: "Nines (9+...)",
+            modeTriplets: "Three Numbers",
+            modeMissing: "Missing Number",
+            next: "Next ➡️"
         },
         it: {
             title: "Matematica!",
@@ -96,7 +102,13 @@ document.addEventListener('DOMContentLoaded', () => {
             modeClassic: "Classica (a+b)",
             modeNines: "Del Nove (9+...)",
             modeTriplets: "Tre Numeri",
-            modeMissing: "Numero Mancante"
+            feedbackWrong: "Ops, riprova!",
+            selectGameplay: "Modalità di Gioco:",
+            modeClassic: "Classica (a+b)",
+            modeNines: "Del Nove (9+...)",
+            modeTriplets: "Tre Numeri",
+            modeMissing: "Numero Mancante",
+            next: "Avanti ➡️"
         }
     };
 
@@ -118,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const screens = {
         menu: document.getElementById('menu-screen'),
         setup: document.getElementById('setup-screen'),
+        difficulty: document.getElementById('difficulty-screen'),
         game: document.getElementById('game-screen'),
         results: document.getElementById('results-screen'),
         leaderboard: document.getElementById('leaderboard-screen')
@@ -137,7 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSetupBack: document.getElementById('btn-setup-back'),
 
         // Setup Groups
-        groupName: document.getElementById('group-name'),
         groupCount: document.getElementById('group-count'),
         groupTimer: document.getElementById('group-timer'),
 
@@ -199,6 +211,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Setup
         els.btnSetupBack.addEventListener('click', () => showScreen('menu'));
+        const btnSetupNext = document.getElementById('btn-setup-next');
+        if (btnSetupNext) {
+            btnSetupNext.addEventListener('click', () => {
+                showScreen('difficulty');
+            });
+        }
+
+        // Difficulty Screen
+        const btnDiffBack = document.getElementById('btn-difficulty-back');
+        if (btnDiffBack) {
+            btnDiffBack.addEventListener('click', () => showScreen('setup'));
+        }
+
         els.toggleBtns.forEach(btn => btn.addEventListener('click', () => {
             els.toggleBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -270,25 +295,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function startFreeRunSetup() {
         STATE.mode = 'free';
+        STATE.playerName = els.inputName.value.trim() || 'Player';
         showScreen('setup');
 
         // Hide specific challenge fields, but keep Timer Toggle
-        els.groupName.classList.add('hidden');
+        // In free run, question count is irrelevant, but let's just hide the count selector
         els.groupCount.classList.add('hidden');
         els.groupTimer.classList.remove('hidden');
     }
 
-    // Fix: restore the "Show setup for challenge"
     els.btnChallenge.addEventListener('click', () => {
         STATE.mode = 'challenge';
+        STATE.playerName = els.inputName.value.trim() || 'Player';
         showScreen('setup');
 
         // Show all fields for Challenge
-        els.groupName.classList.remove('hidden');
         els.groupCount.classList.remove('hidden');
         els.groupTimer.classList.remove('hidden');
-
-        STATE.playerName = els.inputName.value || 'Player';
     });
 
     function startFreeRunGame() {
